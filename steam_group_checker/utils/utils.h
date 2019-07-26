@@ -45,16 +45,15 @@ private:
 	std::condition_variable is_empty;
 };
 
-inline std::vector<std::string> split(const char* c, const char* cc) {
-	std::string s(c);
+inline std::vector<std::string> split(std::string c, std::string cc) {
 	std::vector<std::string> v;
 	size_t pos = 0;
-	std::string token;
-	while ((pos = s.find(cc)) != std::string::npos) {
-		token = s.substr(0, pos);
-		v.push_back(token);
-		s.erase(0, pos + std::string(cc).length());
+	std::string token = {};
+	while ((pos = c.find(cc)) != std::string::npos) {
+		token = c.substr(0, pos);
+		v.emplace_back(token);
+		c.erase(0, pos + cc.length());
 	}
-	v.push_back(s);
+	v.emplace_back(c);
 	return v;
 }

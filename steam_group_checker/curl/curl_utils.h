@@ -18,19 +18,12 @@ struct curl_ret
 class curl_utils
 {
 public:
-	curl_utils()
-	{
-		
-	}
-
-	~curl_utils()
-	{
-	}
+	curl_utils() { curl = curl_easy_init(); }
+	~curl_utils() { if (curl) curl_easy_cleanup(curl); }
 
 	curl_ret request(const std::string& url, const std::string& data = "")
 	{
 		curl_ret ret;
-		curl = curl_easy_init();
 		if (curl) {
 			curl_easy_setopt(curl, CURLOPT_URL, url.c_str());
 			curl_easy_setopt(curl, CURLOPT_FOLLOWLOCATION, 1L);
@@ -49,8 +42,6 @@ public:
 			} else {
 				curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &ret.response_code);
 			}
-
-			curl_easy_cleanup(curl);
 		}
 
 		return ret;

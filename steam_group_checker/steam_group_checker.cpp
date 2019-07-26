@@ -47,19 +47,20 @@ void thread_routine()
 
 	// Send a GET requests to the URLs
 	curl_ret ret_xml = curl->request(url + "/memberslistxml/?xml=1");
+	std::this_thread::sleep_for(std::chrono::milliseconds(100));
 	curl_ret ret = curl->request(url);
 
-	if (ret.body == "invalid" || ret_xml.body == "invalid")
+	if (ret.body.find("You don't have permission to access") != std::string::npos || ret.response_code == 429 || ret_xml.response_code == 429)
 	{
-		printf_s("[Error] Failed CURL request (Group ID: %i)\n", saved_group_id);
+		printf_s("[Error] Failed request, steam servers blocked your IP for some time (Group ID: %i | Response code: %i - %i)\n", saved_group_id, ret.response_code, ret_xml.response_code);
+		--group_id;
 		--threads;
 		return;
 	}
 
-	if (ret.body.find("You don't have permission to access") != std::string::npos)
+	if (ret.response_code != 200 || ret_xml.response_code != 200)
 	{
-		printf_s("[Error] Failed request, steam servers blocked your IP for some time (Group ID: %i)\n", saved_group_id);
-		--group_id;
+		printf_s("[Error] Failed CURL request (Group ID: %i)\n", saved_group_id);
 		--threads;
 		return;
 	}
@@ -82,22 +83,27 @@ void thread_routine()
 			std::string member_count = group_details->first_node("memberCount")->first_node()->value();
 			std::string members_online = group_details->first_node("membersOnline")->first_node()->value();
 
-			std::string clan_tag = split(split(ret.body.c_str(), "<span class=\"grouppage_header_abbrev\" >").at(1).c_str(), "</span>").at(0);
+			std::string spl1t = split(ret.body.c_str(), "<span class=\"grouppage_header_abbrev\" >").at(1);
+			std::string clan_tag = split(spl1t.c_str(), "</span>").at(0);
 
 			// Check if we want owner info
 			if (get_owner_info)
 			{
 				// Get first id64 from XML (obviously owner is always first)
 				std::string owner_id64 = doc.first_node()->first_node("members")->first_node()->value();
+				
+				std::this_thread::sleep_for(std::chrono::milliseconds(50));
 				ret = curl->request("https://steamcommunity.com/profiles/" + owner_id64); // GET request to URL
 
 				// Get name and level by splitting HTML page
 				std::string name;
 				std::string level;
 
-				name = split(split(ret.body.c_str(), "<span class=\"actual_persona_name\">").at(1).c_str(), "</span>").at(0);
+				spl1t = split(ret.body.c_str(), "<span class=\"actual_persona_name\">").at(1);
+				name = split(spl1t.c_str(), "</span>").at(0);
 				try {
-					level = split(split(ret.body.c_str(), "<span class=\"friendPlayerLevelNum\">").at(1).c_str(), "</span>").at(0);
+					spl1t = split(ret.body.c_str(), "<span class=\"friendPlayerLevelNum\">").at(1);
+					level = split(spl1t.c_str(), "</span>").at(0);
 				} catch (...) {
 					level = "Private";
 				}
