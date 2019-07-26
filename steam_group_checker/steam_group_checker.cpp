@@ -56,6 +56,14 @@ void thread_routine()
 		return;
 	}
 
+	if (ret.body.find("You don't have permission to access") != std::string::npos)
+	{
+		printf_s("[Error] Failed request, steam servers blocked your IP for some time (Group ID: %i)\n", saved_group_id);
+		--group_id;
+		--threads;
+		return;
+	}
+
 	// Convert the string to char* array
 	char* copied_char_str = new char[ret_xml.body.size() + 1];
 	strcpy_s(copied_char_str, ret_xml.body.size() + 1, ret_xml.body.c_str());
@@ -84,8 +92,13 @@ void thread_routine()
 				ret = curl->request("https://steamcommunity.com/profiles/" + owner_id64); // GET request to URL
 
 				// Get name and level by splitting HTML page
-				std::string name = split(split(ret.body.c_str(), "<span class=\"actual_persona_name\">").at(1).c_str(), "</span>").at(0);
-				std::string level = split(split(ret.body.c_str(), "<span class=\"friendPlayerLevelNum\">").at(1).c_str(), "</span>").at(0);\
+				std::string name;
+				std::string level;
+					name = split(split(ret.body.c_str(), "<span class=\"actual_persona_name\">").at(1).c_str(), "</span>").at(0);
+				try {
+					level = split(split(ret.body.c_str(), "<span class=\"friendPlayerLevelNum\">").at(1).c_str(), "</span>").at(0);
+				}
+				catch (...) { level = "Private"; }
 
 				// Append owner info to group_infos string
 				group_infos.append(std::string("< Owner infos >\n") \
@@ -143,11 +156,11 @@ int main()
 	std::cout << R"(
            |`-.._____..-'|
            :  > .  ,  <  :
-           `./ __`' __ \,'
-            | (|_) (|_) |
-            ; _  .  __  :
-            `.,' - `-. ,'
-              `, `_  .'
+           `./___`' ___\,'
+            |(___)-(___)|
+            ; __  .  __ :
+            `. .' - `. ,'
+              `,_____.'
               / \___/ \
              /    $    :
             :          |_
