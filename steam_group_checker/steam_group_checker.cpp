@@ -94,11 +94,13 @@ void thread_routine()
 				// Get name and level by splitting HTML page
 				std::string name;
 				std::string level;
-					name = split(split(ret.body.c_str(), "<span class=\"actual_persona_name\">").at(1).c_str(), "</span>").at(0);
+
+				name = split(split(ret.body.c_str(), "<span class=\"actual_persona_name\">").at(1).c_str(), "</span>").at(0);
 				try {
 					level = split(split(ret.body.c_str(), "<span class=\"friendPlayerLevelNum\">").at(1).c_str(), "</span>").at(0);
+				} catch (...) {
+					level = "Private";
 				}
-				catch (...) { level = "Private"; }
 
 				// Append owner info to group_infos string
 				group_infos.append(std::string("< Owner infos >\n") \
@@ -173,6 +175,8 @@ int main()
            by wawixs        `----'
 )" << '\n';
 
+	curl_global_init(CURL_GLOBAL_DEFAULT);
+
 	try {
 		std::cout << "Starting group ID (ex 999): \n";
 		std::cin >> group_id;
@@ -189,4 +193,6 @@ int main()
 		printf_s("[Error] %s\n", ex.what());
 		system("pause");
 	}
+
+	curl_global_cleanup();
 }
