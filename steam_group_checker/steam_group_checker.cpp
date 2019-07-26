@@ -23,8 +23,8 @@ void async_logging()
 		groups_found << str.c_str();
 		groups_found.close();
 
-		// Print to console safely :-)
-		printf_s(str.c_str());
+		// Print to console :-)
+		printf(str.c_str());
 
 		std::this_thread::sleep_for(std::chrono::milliseconds(1));
 	}
