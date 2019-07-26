@@ -8,7 +8,6 @@
 #include "rapidxml/rapidxml.hpp"
 using namespace rapidxml;
 
-std::unique_ptr<curl_utils> curl = std::make_unique<curl_utils>();
 std::unique_ptr<blocking_queue<std::string>> queue = std::make_unique<blocking_queue<std::string>>(1);
 
 void async_logging()
@@ -37,6 +36,10 @@ int threads = 0;
 bool get_owner_info = false;
 void thread_routine()
 {
+	std::unique_ptr<curl_utils> curl = std::make_unique<curl_utils>();
+	while (!curl)
+		std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
 	// Variables definition
 	std::string url = "https://steamcommunity.com/gid/" + std::to_string(group_id);
 	int saved_group_id = group_id;
@@ -48,7 +51,7 @@ void thread_routine()
 
 	if (ret.body == "invalid" || ret_xml.body == "invalid")
 	{
-		printf_s("[Error] Invalid group (ID: %i)\n", saved_group_id);
+		printf_s("[Error] Failed CURL request (Group ID: %i)\n", saved_group_id);
 		--threads;
 		return;
 	}
@@ -104,7 +107,7 @@ void thread_routine()
 			queue->push(group_infos); // Push to blocking queue
 		}
 	} catch (std::exception ex) {
-		printf_s("[Error] Invalid group (ID: %i)\n", saved_group_id);
+		printf_s("[Error] Invalid group (ID: %i) (%s)\n", saved_group_id, ex.what());
 	}
 
 	// Avoid memory leak of course
@@ -158,10 +161,6 @@ int main()
 )" << '\n';
 
 	try {
-		std::cout << "Waiting for CURL initialization\n";
-		while (!curl)
-			std::this_thread::sleep_for(std::chrono::milliseconds(1));
-
 		std::cout << "Starting group ID (ex 999): \n";
 		std::cin >> group_id;
 

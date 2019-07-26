@@ -25,7 +25,6 @@ public:
 
 	~curl_utils()
 	{
-		curl_easy_cleanup(curl); // for multithreading purposes cleanup at the end
 		curl_global_cleanup();
 	}
 
@@ -51,6 +50,8 @@ public:
 			} else {
 				curl_easy_getinfo(curl, CURLINFO_RESPONSE_CODE, &ret.response_code);
 			}
+
+			curl_easy_cleanup(curl);
 		}
 
 		return ret;
