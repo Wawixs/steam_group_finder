@@ -20,12 +20,11 @@ class curl_utils
 public:
 	curl_utils()
 	{
-		curl_global_init(CURL_GLOBAL_DEFAULT);
+		
 	}
 
 	~curl_utils()
 	{
-		curl_global_cleanup();
 	}
 
 	curl_ret request(const std::string& url, const std::string& data = "")
