@@ -1,2 +1,4 @@
 # steam_group_finder
-Iterate through groups with a starting gid and dump them to a file
+Multithreaded steam group checker written in C++
+
+Ready to compile, nothing to do
